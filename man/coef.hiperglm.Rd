@@ -2,18 +2,18 @@
 % Please edit documentation in R/coef.R
 \name{coef.hiperglm}
 \alias{coef.hiperglm}
-\title{Extract Coefficients from hiperglm Model}
+\title{Extract model coefficients from a hiper_glm object}
 \usage{
 \method{coef}{hiperglm}(object, ...)
 }
 \arguments{
-\item{object}{A hiperglm model object.}
+\item{object}{A \code{hiperglm} object}
 
-\item{...}{Additional arguments (currently ignored).}
+\item{...}{Additional arguments}
 }
 \value{
-A warning message stating that the function is not implemented.
+A numeric vector of coefficients
 }
 \description{
-Placeholder function for extracting coefficients from hiperglm model.
+Extract model coefficients from a hiper_glm object
 }
