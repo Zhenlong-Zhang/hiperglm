@@ -22,6 +22,10 @@ hiper_glm <- function(X, y, method = c("pseudo_inverse", "BFGS")) {
 
     beta_init <- solve(t(X) %*% X, t(X) %*% y)  
     optim_res <- optim(beta_init, neg_log_likelihood, neg_grad, X = X, y = y, method = "BFGS", control = list(fnscale = 1))
+    # check whether BFGS has converged before returning the result. If it has not converged, provide a warning message to alert the user
+    if (optim_res$convergence != 0) {
+      warning("BFGS optimization did not converge. Consider checking your data, initial values, or optimization settings.")
+    }
     beta_hat <- optim_res$par
   }
 
