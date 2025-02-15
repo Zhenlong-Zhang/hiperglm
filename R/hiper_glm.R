@@ -10,18 +10,18 @@ hiper_glm <- function(X, y, method = c("pseudo_inverse", "BFGS")) {
   if (method == "pseudo_inverse") {
     beta_hat <- solve(t(X) %*% X, t(X) %*% y)  
   } else if (method == "BFGS") {
-    log_likelihood <- function(beta, X, y) {
+    neg_log_likelihood <- function(beta, X, y) {
       residuals <- y - X %*% beta
       return(sum(residuals^2) / 2)  
     }
 
-    grad <- function(beta, X, y) {
+    neg_grad <- function(beta, X, y) {
       residuals <- y - X %*% beta
       return(-t(X) %*% residuals)  
     }
 
     beta_init <- solve(t(X) %*% X, t(X) %*% y)  
-    optim_res <- optim(beta_init, log_likelihood, grad, X = X, y = y, method = "BFGS", control = list(fnscale = 1))
+    optim_res <- optim(beta_init, neg_log_likelihood, neg_grad, X = X, y = y, method = "BFGS", control = list(fnscale = 1))
     beta_hat <- optim_res$par
   }
 
