@@ -3,15 +3,15 @@ test_that("Analytical gradient matches numerical gradient for BFGS", {
 
   log_likelihood <- function(beta) {
     residuals <- data$outcome - data$design %*% beta
-    return(sum(residuals^2) / 2)  # **负对数似然**
+    return(sum(residuals^2) / 2)  # nll
   }
 
   grad <- function(beta) {
     residuals <- data$outcome - data$design %*% beta
-    return(-t(data$design) %*% residuals)  # **梯度**
+    return(-t(data$design) %*% residuals)  # gradient
   }
 
-  beta_test <- rep(0, ncol(data$design))  # **初始化参数**
+  beta_test <- rep(0, ncol(data$design))  # initialize parameters
   grad_analytical <- grad(beta_test)
   grad_numerical <- approx_grad(log_likelihood, beta_test)
 
