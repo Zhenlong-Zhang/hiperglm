@@ -1,33 +1,36 @@
-#' Fit a linear model using either pseudo-inverse or BFGS optimization
-#' @param X Design matrix (n x p)
-#' @param y Response variable (n x 1)
-#' @param method Optimization method: "pseudo_inverse" or "BFGS"
-#' @return A `hiperglm` object containing estimated coefficients
-#' @export
-hiper_glm <- function(X, y, method = c("pseudo_inverse", "BFGS")) {
-  method <- match.arg(method)
+# Load the fitting methods
+source("R/fit_functions.R")
+
+
+hiper_glm <- function(design, outcome, model = "linear", option = list()) {
   
-  if (method == "pseudo_inverse") {
-    beta_hat <- solve(t(X) %*% X, t(X) %*% y)  
-  } else if (method == "BFGS") {
-    neg_log_likelihood <- function(beta, X, y) {
-      residuals <- y - X %*% beta
-      return(sum(residuals^2) / 2)  
-    }
-
-    neg_grad <- function(beta, X, y) {
-      residuals <- y - X %*% beta
-      return(-t(X) %*% residuals)  
-    }
-
-    beta_init <- solve(t(X) %*% X, t(X) %*% y)  
-    optim_res <- optim(beta_init, neg_log_likelihood, neg_grad, X = X, y = y, method = "BFGS", control = list(fnscale = 1))
-    # check whether BFGS has converged before returning the result. If it has not converged, provide a warning message to alert the user
-    if (optim_res$convergence != 0) {
-      warning("BFGS optimization did not converge. Consider checking your data, initial values, or optimization settings.")
-    }
-    beta_hat <- optim_res$par
+  # Check input validity
+  if (nrow(design) != length(outcome)) {
+    stop("Error: The number of rows in 'design' must match the length of 'outcome'.")
+  }
+  if (!is.matrix(design)) {
+    stop("Error: 'design' must be a matrix.")
+  }
+  if (!is.vector(outcome)) {
+    stop("Error: 'outcome' must be a vector.")
+  }
+  
+  # Allowed methods
+  allowed_methods <- c("pseudo_inverse", "BFGS")
+  option <- modifyList(list(method = "pseudo_inverse"), option)
+  method <- match.arg(option$method, allowed_methods)
+  
+  # Control checks
+  if (!is.null(option$control) && !is.list(option$control)) {
+    stop("Error: 'option$control' must be a list if provided or if none a default method of pseudo inverse will be performed.")
   }
 
-  return(structure(list(coefficients = beta_hat, method = method), class = "hiperglm"))
+  # Fit the model
+  if (method == "pseudo_inverse") {
+    beta_hat <- fitting_method_pseudo_inverse(design, outcome)  
+  } else if (method == "BFGS") {
+    beta_hat <- fitting_method_bfgs(design, outcome, option)
+  }
+
+  return(structure(list(coefficients = beta_hat, method = method, model = model), class = "hiperglm"))
 }

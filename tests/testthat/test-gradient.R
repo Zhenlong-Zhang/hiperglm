@@ -1,5 +1,3 @@
-source("R/hiperglm.R")
-
 test_that("Analytical gradient matches numerical gradient for BFGS", {
   data <- simulate_data(n_obs = 100, n_pred = 5, seed = 42)
 
