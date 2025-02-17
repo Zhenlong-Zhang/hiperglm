@@ -24,14 +24,20 @@ are_all_close <- function(v, w, abs_tol = 1e-6, rel_tol = 1e-6) {
 #' @keywords internal
 simulate_data <- function(
     n_obs, n_pred, model = "linear", intercept = NULL, 
-    coef_true = NULL, design = NULL, seed = NULL, signal_to_noise = 0.1
-  ) {
+    coef_true = NULL, design = NULL, seed = NULL, option = list()
+) {
   if (!is.null(seed)) {
     set.seed(seed)
   }
+  if ((model != "linear")  && !is.null(option$signal_to_noise)) {
+    warning(paste(
+      "The `signal_to_noise` option is currently unsupported for",
+      "non-linear models and will be ignored."
+    ))
+  }
   if (is.null(coef_true)) {
     coef_true <- rnorm(n_pred, sd = 1 / sqrt(n_pred))
-  }
+  } 
   if (is.null(design)) {
     design <- matrix(rnorm(n_obs * n_pred), nrow = n_obs, ncol = n_pred)
   }
@@ -43,9 +49,27 @@ simulate_data <- function(
     design <- cbind(rep(1, n_obs), design)
   }
   expected_mean <- as.vector(design %*% coef_true)
-  noise_magnitude <- sqrt(var(expected_mean) / signal_to_noise^2)
-  noise <- noise_magnitude * rnorm(n_obs)
-  outcome <- expected_mean + noise
+  if (model == 'linear') {
+    signal_to_noise <- option$signal_to_noise
+    if (is.null(signal_to_noise)) {
+      signal_to_noise <- 0.1
+    }
+    noise_magnitude <- sqrt(var(expected_mean) / signal_to_noise^2)
+    noise <- noise_magnitude * rnorm(n_obs)
+    outcome <- expected_mean + noise 
+  } else {
+    n_trial <- option$n_trial
+    prob <- 1 / (1 + exp(-expected_mean))
+    # Object type of `outcome` returned by this function is variable. One should 
+    # in general be careful about introducing this type of inconsistency, but 
+    # sometimes one might find it the most natural and/or reasonable thing to do.
+    if (is.null(n_trial)) {
+      outcome <- rbinom(n_obs, 1, prob)
+    } else {
+      n_success <- rbinom(n_obs, n_trial, prob)
+      outcome <- list(n_success = n_success, n_trial = n_trial)
+    }
+  }
   return(list(design = design, outcome = outcome, coef_true = coef_true))
 }
 
