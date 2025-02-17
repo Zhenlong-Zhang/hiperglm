@@ -2,7 +2,6 @@
 source("R/fit_functions.R")
 
 hiper_glm <- function(design, outcome, model = NULL, option = list()) {
-  #  Logistic if outcome 0/1
   if (is.null(model)) {
     if (all(outcome %in% c(0, 1))) {
       model <- "logistic"
@@ -10,7 +9,7 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
       model <- "linear"
     }
   }
-  # inputs check
+
   if (nrow(design) != length(outcome)) {
     stop("Error: The number of rows in 'design' must match the length of 'outcome'.")
   }
@@ -20,16 +19,24 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
   if (!is.vector(outcome)) {
     stop("Error: 'outcome' must be a vector.")
   }
+
   allowed_methods <- c("pseudo_inverse", "BFGS", "Newton")
-  # null is defaly to be pse
+
   if (is.null(option)) {
     option <- list()
   }
-  option <- modifyList(list(method = "pseudo_inverse", model = model), option)
+  
+  option <- modifyList(
+    list(method = "pseudo_inverse", model = model, max_iter = 50, epsilon_abs = 1e-6, epsilon_rel = 1e-6),
+    option
+  )
+  
   method <- match.arg(option$method, allowed_methods)
+
   if (!is.null(option$control) && !is.list(option$control)) {
     stop("Error: 'option$control' must be a list if provided.")
   }
+
   if (method == "pseudo_inverse") {
     if (model == "logistic") {
       stop("Error: Pseudo-inverse method is not supported for logistic regression.")
@@ -46,7 +53,7 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
     if (model != "logistic") {
       stop("Error: Newton's method is only implemented for logistic regression.")
     }
-    beta_hat <- fitting_method_newton(design, outcome, option)
+    beta_hat <- fitting_method_newton(design, outcome, option)  # 直接调用，warning 在内部处理
   }
 
   return(structure(list(coefficients = beta_hat, method = method, model = model), class = "hiperglm"))

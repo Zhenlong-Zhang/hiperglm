@@ -1,3 +1,4 @@
+source("R/likelihood_calculation.R")
 #-------------------------------------------------------------
 # -------------------Pseudo Inverse fitting method
 #-------------------------------------------------------------
@@ -43,19 +44,21 @@ fitting_method_bfgs <- function(design, outcome, option) {
 #-------------- -----newton
 #-------------------------------------------------------------
 fitting_method_newton <- function(design, outcome, option) {
-  max_iter <- if (!is.null(option$max_iter)) option$max_iter else 20  # max
-  tol <- if (!is.null(option$tol)) option$tol else 1e-6
-  
+  max_iter <- if (!is.null(option$max_iter)) option$max_iter else 50  
+  epsilon_abs <- if (!is.null(option$epsilon_abs)) option$epsilon_abs else 1e-6  
+  epsilon_rel <- if (!is.null(option$epsilon_rel)) option$epsilon_rel else 1e-6  
+  epsilon_small <- 1e-8  
+
   model_type <- if (!is.null(option$model)) option$model else "logistic"
   likelihood_funcs <- get_likelihood_functions(model_type)
-  
+
   beta <- rep(0, ncol(design))
-  last_update_norm <- Inf
-  
+  log_likelihood_old <- likelihood_funcs$log_likelihood(beta, design, outcome)
+
   for (i in 1:max_iter) {
     grad <- likelihood_funcs$gradient(beta, design, outcome)
     H <- likelihood_funcs$hessian(beta, design, outcome)
-    # in case it fails
+
     beta_update <- tryCatch(
       solve(H, grad),  
       error = function(e) {
@@ -63,21 +66,23 @@ fitting_method_newton <- function(design, outcome, option) {
         return(grad * 0.01) 
       }
     )
-    beta <- beta - beta_update
-    update_norm <- sum(abs(beta_update))  
-    # warning
-    if (update_norm < tol) {
-      if (i < 3) {
-        warning("Newton's method converged in very few iterations (", i, "). Consider checking data conditioning.")
-      } else {
-        message("Newton's method converged at iteration ", i)
-      }
-      break
+
+    beta <- beta - beta_update 
+
+    log_likelihood_new <- likelihood_funcs$log_likelihood(beta, design, outcome)
+    change <- abs(log_likelihood_new - log_likelihood_old)  
+    rel_change <- change / (abs(log_likelihood_old) + epsilon_small)  
+
+    # converge check
+    if (change < epsilon_abs || rel_change < epsilon_rel) {
+      message("Newton's method converged at iteration ", i)
+      return(beta)
     }
-    if (i == max_iter) {
-      warning("Newton's method reached max iterations (", max_iter, ") without full convergence.")
-    }
-    last_update_norm <- update_norm
+
+    log_likelihood_old <- log_likelihood_new  # update log-likelihood
   }
+
+  # warning if not
+  warning("Newton's method reached the maximum iteration limit of ", max_iter, " without full convergence.")
   return(beta)
 }
