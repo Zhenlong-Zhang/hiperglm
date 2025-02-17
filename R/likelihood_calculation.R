@@ -67,23 +67,23 @@ hessian_logistic <- function(beta, X, y) {
 #-------------------------------------------------------------
 # --------------choose based on model
 #-------------------------------------------------------------
-get_likelihood_functions <- function(model) {
-  likelihoods <- list(
+get_neg_likelihood_functions <- function(model) {
+  neg_likelihoods <- list(
     linear = list(
-      log_likelihood = neg_log_likelihood_linear,
-      gradient = neg_gradient_linear,
+      neg_log_likelihood = neg_log_likelihood_linear,
+      neg_gradient = neg_gradient_linear,
       hessian = NULL  # linear deos not need Hessian
     ),
     logistic = list(
-      log_likelihood = neg_log_likelihood_logistic,
-      gradient = neg_gradient_logistic,
+      neg_log_likelihood = neg_log_likelihood_logistic,
+      neg_gradient = neg_gradient_logistic,
       hessian = hessian_logistic  # Hessian applu Newton’s 
     )
   )
   
-  if (!model %in% names(likelihoods)) {
+  if (!model %in% names(neg_likelihoods)) {
     stop("Unsupported model type: ", model)
   }
   
-  return(likelihoods[[model]])
+  return(neg_likelihoods[[model]])
 }

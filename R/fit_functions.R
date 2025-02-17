@@ -11,7 +11,7 @@ fitting_method_pseudo_inverse <- function(design, outcome) {
 fitting_method_bfgs <- function(design, outcome, option) {
   model_type <- if (!is.null(option$model)) option$model else "linear"
   # import the nll cal and neg grad based on model type
-  likelihood_funcs <- get_likelihood_functions(model_type)
+  neg_likelihood_funcs <- get_neg_likelihood_functions(model_type)
   if (model_type == "logistic") {
     beta_init <- rep(0, ncol(design))  
   } else if (model_type == "linear") {
@@ -30,8 +30,8 @@ fitting_method_bfgs <- function(design, outcome, option) {
   # bfgs
   optim_res <- optim(
     beta_init, 
-    fn = function(b) likelihood_funcs$log_likelihood(b, design, outcome),
-    gr = function(b) likelihood_funcs$gradient(b, design, outcome),
+    fn = function(b) neg_likelihood_funcs$neg_log_likelihood(b, design, outcome),
+    gr = function(b) neg_likelihood_funcs$neg_gradient(b, design, outcome),
     method = "BFGS",
     control = if (!is.null(option$control)) option$control else list(fnscale = 1, maxit = 1000)
   )
@@ -50,28 +50,28 @@ fitting_method_newton <- function(design, outcome, option) {
   epsilon_small <- 1e-8  
 
   model_type <- if (!is.null(option$model)) option$model else "logistic"
-  likelihood_funcs <- get_likelihood_functions(model_type)
+  neg_likelihood_funcs <- get_neg_likelihood_functions(model_type)
 
   beta <- rep(0, ncol(design))
-  log_likelihood_old <- likelihood_funcs$log_likelihood(beta, design, outcome)
+  neg_log_likelihood_old <- neg_likelihood_funcs$neg_log_likelihood(beta, design, outcome)
 
   for (i in 1:max_iter) {
-    grad <- likelihood_funcs$gradient(beta, design, outcome)
-    H <- likelihood_funcs$hessian(beta, design, outcome)
+    neg_grad <- neg_likelihood_funcs$neg_gradient(beta, design, outcome)
+    H <- neg_likelihood_funcs$hessian(beta, design, outcome)
 
     beta_update <- tryCatch(
-      solve(H, grad),  
+      solve(H, neg_grad),  
       error = function(e) {
         warning("Hessian is singular, using small step gradient update instead.")
-        return(grad * 0.01) 
+        return(neg_grad * 0.01) 
       }
     )
 
     beta <- beta - beta_update 
 
-    log_likelihood_new <- likelihood_funcs$log_likelihood(beta, design, outcome)
-    change <- abs(log_likelihood_new - log_likelihood_old)  
-    rel_change <- change / (abs(log_likelihood_old) + epsilon_small)  
+    neg_log_likelihood_new <- neg_likelihood_funcs$neg_log_likelihood(beta, design, outcome)
+    change <- abs(neg_log_likelihood_new - neg_log_likelihood_old)  
+    rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)  
 
     # converge check
     if (change < epsilon_abs || rel_change < epsilon_rel) {
@@ -79,7 +79,7 @@ fitting_method_newton <- function(design, outcome, option) {
       return(beta)
     }
 
-    log_likelihood_old <- log_likelihood_new  # update log-likelihood
+    neg_log_likelihood_old <- neg_log_likelihood_new  # update nll
   }
 
   # warning if not
