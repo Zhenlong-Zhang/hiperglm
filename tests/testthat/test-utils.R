@@ -1,5 +1,4 @@
 # where to get the function needed for testing
-library(testthat)
 source("utils.R")
 
 test_that("are_all_close works correctly", {
