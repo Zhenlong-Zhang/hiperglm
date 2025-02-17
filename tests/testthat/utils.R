@@ -21,7 +21,7 @@ are_all_close <- function(v, w, abs_tol = 1e-6, rel_tol = 1e-6) {
 #' @param seed Random seed for reproducibility
 #' @param signal_to_noise Signal-to-noise ratio
 #' @return A list with `design`, `outcome`, and `coef_true`
-#' @export
+#' @keywords internal
 simulate_data <- function(
     n_obs, n_pred, model = "linear", intercept = NULL, 
     coef_true = NULL, design = NULL, seed = NULL, signal_to_noise = 0.1
@@ -54,7 +54,7 @@ simulate_data <- function(
 #' @param x Point at which gradient is evaluated
 #' @param dx Small perturbation for finite difference
 #' @return Numerical gradient (vector)
-#' @export
+#' @keywords internal
 approx_grad <- function(func, x, dx = .Machine$double.eps^(1/3)) {
   numerical_grad <- rep(0, length(x))
   for (i in seq_along(x)) {
