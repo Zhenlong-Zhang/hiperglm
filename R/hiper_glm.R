@@ -1,10 +1,18 @@
 # Load the fitting methods
 source("R/fit_functions.R")
 
-
-hiper_glm <- function(design, outcome, model = "linear", option = list()) {
+hiper_glm <- function(design, outcome, model = NULL, option = list()) {
   
-  # Check input validity
+  # Logistic if outcome only 0/1
+  if (is.null(model)) {
+    if (all(outcome %in% c(0, 1))) {
+      model <- "logistic"
+    } else {
+      model <- "linear"
+    }
+  }
+  
+  # check inputs
   if (nrow(design) != length(outcome)) {
     stop("Error: The number of rows in 'design' must match the length of 'outcome'.")
   }
@@ -15,19 +23,32 @@ hiper_glm <- function(design, outcome, model = "linear", option = list()) {
     stop("Error: 'outcome' must be a vector.")
   }
   
-  # Allowed methods
+  # may add more in the future
   allowed_methods <- c("pseudo_inverse", "BFGS")
-  option <- modifyList(list(method = "pseudo_inverse"), option)
+  
+  # if option is NULL，go to defalt
+  if (is.null(option)) {
+    option <- list()
+  }
+  option <- modifyList(list(method = "pseudo_inverse", model = model), option)
+  
   method <- match.arg(option$method, allowed_methods)
   
-  # Control checks
   if (!is.null(option$control) && !is.list(option$control)) {
-    stop("Error: 'option$control' must be a list if provided or if none a default method of pseudo inverse will be performed.")
+    stop("Error: 'option$control' must be a list if provided.")
   }
 
-  # Fit the model
+  # how to fit
   if (method == "pseudo_inverse") {
-    beta_hat <- fitting_method_pseudo_inverse(design, outcome)  
+    if (model == "logistic") {
+      stop("Error: Pseudo-inverse method is not supported for logistic regression.")
+    }
+    beta_hat <- tryCatch(
+      fitting_method_pseudo_inverse(design, outcome),
+      error = function(e) {
+        stop("Error in pseudo-inverse fitting: ", e$message)
+      }
+    )
   } else if (method == "BFGS") {
     beta_hat <- fitting_method_bfgs(design, outcome, option)
   }
