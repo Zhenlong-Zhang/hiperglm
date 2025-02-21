@@ -53,7 +53,7 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
     if (model != "logistic") {
       stop("Error: Newton's method is only implemented for logistic regression.")
     }
-    beta_hat <- fitting_method_newton(design, outcome, option)  # 直接调用，warning 在内部处理
+    beta_hat <- fitting_method_newton(design, outcome, option)
   }
 
   return(structure(list(coefficients = beta_hat, method = method, model = model), class = "hiperglm"))
