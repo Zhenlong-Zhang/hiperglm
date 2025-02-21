@@ -29,7 +29,6 @@ neg_gradient_linear <- function(beta, X, y) {
 # @return Negative log-likelihood value
 neg_log_likelihood_logistic <- function(beta, X, y) {
   p <- 1 / (1 + exp(-X %*% beta))  
-  p <- pmax(pmin(p, 1 - 1e-8), 1e-8)  # no log 0
   log_lik <- sum(y * log(p) + (1 - y) * log(1 - p))  
   return(-log_lik)  
 }
