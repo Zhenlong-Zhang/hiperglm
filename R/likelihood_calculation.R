@@ -37,7 +37,7 @@ neg_log_likelihood_logistic <- function(beta, X, y) {
 # @return Gradient vector
 neg_gradient_logistic <- function(beta, X, y) {
   p <- 1 / (1 + exp(-X %*% beta))  
-  grad <- t(X) %*% (y - p)  #  X^T (y - p)
+  grad <- t(X) %*% (y - p)
   return(-grad)  
 }
 #' --------------------------- hessian
