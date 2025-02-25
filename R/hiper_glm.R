@@ -1,6 +1,3 @@
-# Load the fitting methods
-source("R/fit_functions.R")
-
 hiper_glm <- function(design, outcome, model = NULL, option = list()) {
   if (is.null(model)) {
     if (all(outcome %in% c(0, 1))) {
