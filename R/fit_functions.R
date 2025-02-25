@@ -54,7 +54,12 @@ fitting_method_newton <- function(design, outcome, option) {
   beta <- rep(0, ncol(design))
   neg_log_likelihood_old <- neg_likelihood_funcs$neg_log_likelihood(beta, design, outcome)
 
-  for (i in 1:max_iter) {
+  iter <- 0
+  converged <- FALSE
+
+  while (!converged && iter < max_iter) {
+    iter <- iter + 1L
+    
     neg_grad <- neg_likelihood_funcs$neg_gradient(beta, design, outcome)
     H <- neg_likelihood_funcs$hessian(beta, design, outcome)
 
@@ -72,16 +77,16 @@ fitting_method_newton <- function(design, outcome, option) {
     change <- abs(neg_log_likelihood_new - neg_log_likelihood_old)  
     rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)  
 
-    # converge check
-    if (change < epsilon_abs || rel_change < epsilon_rel) {
-      message("Newton's method converged at iteration ", i)
-      return(beta)
-    }
-
-    neg_log_likelihood_old <- neg_log_likelihood_new  # update nll
+    converged <- (change < epsilon_abs || rel_change < epsilon_rel)
+    
+    neg_log_likelihood_old <- neg_log_likelihood_new  
   }
 
-  # warning if not
-  warning("Newton's method reached the maximum iteration limit of ", max_iter, " without full convergence.")
+  if (converged) {
+    message("Newton's method converged at iteration ", iter)
+  } else {
+    warning("Newton's method reached the maximum iteration limit (", max_iter, ") without full convergence.")
+  }
+  
   return(beta)
 }
