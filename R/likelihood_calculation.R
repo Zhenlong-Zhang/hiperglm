@@ -1,4 +1,3 @@
-#'-------------------------------------------------------------
 #' --------linear model
 #'-------------------------------------------------------------
 # Compute negative log-likelihood for linear regression
@@ -19,7 +18,6 @@ neg_gradient_linear <- function(beta, X, y) {
   residuals <- y - X %*% beta
   return(-t(X) %*% residuals)
 }
-#'-------------------------------------------------------------
 #' ------------------------logic model
 #'-------------------------------------------------------------
 # Compute negative log-likelihood for logistic regression
@@ -42,7 +40,6 @@ neg_gradient_logistic <- function(beta, X, y) {
   grad <- t(X) %*% (y - p)  #  X^T (y - p)
   return(-grad)  
 }
-#' ------------------------------------------------------------
 #' --------------------------- hessian
 #'-------------------------------------------------------------
 # Compute Hessian matrix for logistic regression
@@ -62,8 +59,6 @@ hessian_logistic <- function(beta, X, y) {
 
 
 
-
-#'-------------------------------------------------------------
 #' --------------choose based on model
 #'-------------------------------------------------------------
 get_neg_likelihood_functions <- function(model) {
