@@ -1,12 +1,22 @@
-#-------------------------------------------------------------
-# -------------------Pseudo Inverse fitting method
-#-------------------------------------------------------------
+#' Internal Fit Function for hiperglm
+#'
+#' @section Pseudo Inverse Method:
+#'
+#' These functions implement the pseudo inverse fitting method.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
 fitting_method_pseudo_inverse <- function(design, outcome) {
   return(solve(t(design) %*% design, t(design) %*% outcome))
 }
-#-------------------------------------------------------------
-# --------------------bfgs
-#-------------------------------------------------------------
+
+
+#' @section BFGS Fitting Method:
+#'
+#' Implements the BFGS optimization method for fitting.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
 fitting_method_bfgs <- function(design, outcome, option) {
   model_type <- if (!is.null(option$model)) option$model else "linear"
   neg_likelihood_funcs <- get_neg_likelihood_functions(model_type)
@@ -38,9 +48,12 @@ fitting_method_bfgs <- function(design, outcome, option) {
   return(optim_res$par)
 }
 
-#-------------------------------------------------------------
-#-------------- -----newton
-#-------------------------------------------------------------
+#' @section Newton Fitting Method:
+#'
+#' Implements Newton's method for logistic regression.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
 fitting_method_newton <- function(design, outcome, option) {
   max_iter <- if (!is.null(option$max_iter)) option$max_iter else 50  
   epsilon_abs <- if (!is.null(option$epsilon_abs)) option$epsilon_abs else 1e-6  

@@ -3,11 +3,25 @@
 \name{neg_log_likelihood_logistic}
 \alias{neg_log_likelihood_logistic}
 \title{\subsection{------------------------logic model}{
+
+Compute negative log-likelihood for logistic regression
 }}
 \usage{
 neg_log_likelihood_logistic(beta, X, y)
 }
+\arguments{
+\item{beta}{Coefficients (vector)}
+
+\item{X}{Design matrix}
+
+\item{y}{Binary response variable (0 or 1)}
+}
+\value{
+Negative log-likelihood value
+}
 \description{
 \subsection{------------------------logic model}{
+
+Compute negative log-likelihood for logistic regression
 }
 }

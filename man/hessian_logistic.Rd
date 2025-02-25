@@ -3,11 +3,25 @@
 \name{hessian_logistic}
 \alias{hessian_logistic}
 \title{\subsection{--------------------------- hessian}{
+
+Compute Hessian matrix for logistic regression
 }}
 \usage{
 hessian_logistic(beta, X, y)
 }
+\arguments{
+\item{beta}{Coefficients (vector)}
+
+\item{X}{Design matrix}
+
+\item{y}{Binary response variable (0 or 1)}
+}
+\value{
+Hessian matrix
+}
 \description{
 \subsection{--------------------------- hessian}{
+
+Compute Hessian matrix for logistic regression
 }
 }

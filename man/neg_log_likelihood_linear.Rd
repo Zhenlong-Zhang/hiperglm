@@ -3,11 +3,25 @@
 \name{neg_log_likelihood_linear}
 \alias{neg_log_likelihood_linear}
 \title{\subsection{--------linear model}{
+
+Compute negative log-likelihood for linear regression
 }}
 \usage{
 neg_log_likelihood_linear(beta, X, y)
 }
+\arguments{
+\item{beta}{Coefficients (vector)}
+
+\item{X}{Design matrix}
+
+\item{y}{Response variable}
+}
+\value{
+Negative log-likelihood value
+}
 \description{
 \subsection{--------linear model}{
+
+Compute negative log-likelihood for linear regression
 }
 }
