@@ -4,7 +4,7 @@
 #' @param abs_tol Absolute tolerance
 #' @param rel_tol Relative tolerance
 #' @return Boolean indicating whether all elements are within tolerance
-#' @export
+#' @keywords internal
 are_all_close <- function(v, w, abs_tol = 1e-6, rel_tol = 1e-6) {
   abs_diff <- abs(v - w)
   are_all_within_atol <- all(abs_diff < abs_tol)
