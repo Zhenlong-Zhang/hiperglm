@@ -100,11 +100,11 @@ approx_grad <- function(func, x, dx = .Machine$double.eps^(1/3)) {
 numerical_hessian <- function(f, beta, epsilon = 1e-5) {  
   n <- length(beta)
   H_approx <- matrix(0, n, n)
-
+  
+  perturbation_scale <- epsilon  
+  
   for (i in 1:n) {
     for (j in 1:n) {
-      perturbation_scale <- max(abs(beta), 1) * epsilon  
-      
       beta_ij1 <- beta
       beta_ij2 <- beta
       beta_ij3 <- beta
