@@ -23,8 +23,6 @@ fitting_method_bfgs <- function(design, outcome, option) {
         return(rep(0, ncol(design)))  
       }
     )
-  } else {
-    stop("Unsupported model type: ", model_type)
   }
   # bfgs
   optim_res <- optim(

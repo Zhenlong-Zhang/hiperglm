@@ -71,11 +71,6 @@ get_neg_likelihood_functions <- function(model) {
       neg_gradient = neg_gradient_logistic,
       hessian = hessian_logistic  # Hessian applu Newton’s 
     )
-  )
-  
-  if (!model %in% names(neg_likelihoods)) {
-    stop("Unsupported model type: ", model)
-  }
-  
+  )  
   return(neg_likelihoods[[model]])
 }
