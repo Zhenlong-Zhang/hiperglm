@@ -1,3 +1,17 @@
+#' Generalized Linear Model Estimation
+#'
+#' This function fits a generalized linear model using different optimization methods.
+#'
+#' @param design A matrix representing the design matrix (independent variables).
+#' @param outcome A vector representing the outcome variable (dependent variable).
+#' @param model A character string specifying the model type: "logistic" or "linear".
+#' If NULL, the function will infer the model type.
+#' @param option A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
+#' maximum iterations, and convergence tolerances.
+#'
+#' @return A list containing the estimated coefficients, method used, and model type.
+#' @export
+
 hiper_glm <- function(design, outcome, model = NULL, option = list()) {
   if (is.null(model)) {
     if (all(outcome %in% c(0, 1))) {
