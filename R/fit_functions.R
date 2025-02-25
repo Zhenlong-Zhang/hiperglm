@@ -9,22 +9,21 @@ fitting_method_pseudo_inverse <- function(design, outcome) {
 #-------------------------------------------------------------
 fitting_method_bfgs <- function(design, outcome, option) {
   model_type <- if (!is.null(option$model)) option$model else "linear"
-  # import the nll cal and neg grad based on model type
   neg_likelihood_funcs <- get_neg_likelihood_functions(model_type)
+  
   if (model_type == "logistic") {
-    beta_init <- rep(0, ncol(design))  
+    p <- mean(outcome)
+    if (p > 0 && p < 1) {
+      init_intercept <- log(p / (1 - p))
+      beta_init <- rep(0, ncol(design))
+      beta_init[1] <- init_intercept
+    } else {
+      beta_init <- rep(0, ncol(design))
+    }
   } else if (model_type == "linear") {
-    XtX <- t(design) %*% design
-    Xty <- t(design) %*% outcome
-    beta_init <- tryCatch(
-      solve(XtX, Xty),  
-      error = function(e) {
-        warning("Matrix inversion failed. Using zeros as initial beta.")
-        return(rep(0, ncol(design)))  
-      }
-    )
+    beta_init <- rep(0, ncol(design))
   }
-  # bfgs
+  
   optim_res <- optim(
     beta_init, 
     fn = function(b) neg_likelihood_funcs$neg_log_likelihood(b, design, outcome),
@@ -32,11 +31,13 @@ fitting_method_bfgs <- function(design, outcome, option) {
     method = "BFGS",
     control = if (!is.null(option$control)) option$control else list(fnscale = 1, maxit = 1000)
   )
+  
   if (optim_res$convergence != 0) {
     warning("BFGS optimization did not converge. Consider checking your data, initial values, or optimization settings.")
   }
   return(optim_res$par)
 }
+
 #-------------------------------------------------------------
 #-------------- -----newton
 #-------------------------------------------------------------
@@ -48,10 +49,21 @@ fitting_method_newton <- function(design, outcome, option) {
 
   model_type <- if (!is.null(option$model)) option$model else "logistic"
   neg_likelihood_funcs <- get_neg_likelihood_functions(model_type)
-
-  beta <- rep(0, ncol(design))
+  
+  if (model_type == "logistic") {
+    p <- mean(outcome)
+    if (p > 0 && p < 1) {
+      init_intercept <- log(p / (1 - p))
+      beta <- rep(0, ncol(design))
+      beta[1] <- init_intercept
+    } else {
+      beta <- rep(0, ncol(design))
+    }
+  } else if (model_type == "linear") {
+    beta <- rep(0, ncol(design))
+  }
+  
   neg_log_likelihood_old <- neg_likelihood_funcs$neg_log_likelihood(beta, design, outcome)
-
   iter <- 0
   converged <- FALSE
 
@@ -70,13 +82,11 @@ fitting_method_newton <- function(design, outcome, option) {
     )
 
     beta <- beta - beta_update 
-
     neg_log_likelihood_new <- neg_likelihood_funcs$neg_log_likelihood(beta, design, outcome)
     change <- abs(neg_log_likelihood_new - neg_log_likelihood_old)  
     rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)  
 
     converged <- (change < epsilon_abs || rel_change < epsilon_rel)
-    
     neg_log_likelihood_old <- neg_log_likelihood_new  
   }
 
