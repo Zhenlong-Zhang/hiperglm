@@ -3,5 +3,4 @@
 S3method(coef,hiperglm)
 S3method(print,hiperglm)
 S3method(vcov,hiperglm)
-export(fitting_method_newton)
 export(hiper_glm)

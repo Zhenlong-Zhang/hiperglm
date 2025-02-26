@@ -58,19 +58,6 @@ fitting_method_bfgs <- function(design, outcome, option) {
 #'
 #' @rdname fitting_methods
 #' @keywords internal
-#' Generalized Linear Model Estimation
-#'
-#' This function fits a generalized linear model using different optimization methods.
-#'
-#' @param design A matrix representing the design matrix (independent variables).
-#' @param outcome A vector representing the outcome variable (dependent variable).
-#' @param model A character string specifying the model type: "logistic" or "linear".
-#' If NULL, the function will infer the model type.
-#' @param option A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
-#' maximum iterations, and convergence tolerances.
-#'
-#' @return A list containing the estimated coefficients, method used, and model type.
-#' @export
 
 fitting_method_newton <- function(design, outcome, option) {
   max_iter <- if (!is.null(option$max_iter)) option$max_iter else 50  

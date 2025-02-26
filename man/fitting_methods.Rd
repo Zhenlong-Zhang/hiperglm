@@ -12,20 +12,6 @@ fitting_method_bfgs(design, outcome, option)
 
 fitting_method_newton(design, outcome, option)
 }
-\arguments{
-\item{design}{A matrix representing the design matrix (independent variables).}
-
-\item{outcome}{A vector representing the outcome variable (dependent variable).}
-
-\item{option}{A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
-maximum iterations, and convergence tolerances.}
-
-\item{model}{A character string specifying the model type: "logistic" or "linear".
-If NULL, the function will infer the model type.}
-}
-\value{
-A list containing the estimated coefficients, method used, and model type.
-}
 \description{
 Internal Fit Function for hiperglm
 }
@@ -47,19 +33,4 @@ Implements the BFGS optimization method for fitting.
 Implements Newton's method for logistic regression.
 }
 
-\keyword{Estimation}
-\keyword{Generalized}
-\keyword{Linear}
-\keyword{Model}
-\keyword{This}
-\keyword{a}
-\keyword{different}
-\keyword{fits}
-\keyword{function}
-\keyword{generalized}
 \keyword{internal}
-\keyword{linear}
-\keyword{methods.}
-\keyword{model}
-\keyword{optimization}
-\keyword{using}
