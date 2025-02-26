@@ -1,15 +1,16 @@
 #' Internal Fit Function for hiperglm
 #'
-#' @section Pseudo Inverse Method:
+#' @section QR Decomposition Fitting Method:
 #'
-#' These functions implement the pseudo inverse fitting method.
+#' Implements the least squares solution using QR decomposition for linear.
 #'
 #' @rdname fitting_methods
 #' @keywords internal
-fitting_method_pseudo_inverse <- function(design, outcome) {
-  return(solve(t(design) %*% design, t(design) %*% outcome))
+fitting_method_qr <- function(design, outcome) {
+  qr_decomp <- qr(design)
+  beta <- qr.coef(qr_decomp, outcome)
+  return(beta)
 }
-
 
 #' @section BFGS Fitting Method:
 #'

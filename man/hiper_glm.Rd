@@ -14,7 +14,7 @@ hiper_glm(design, outcome, model = NULL, option = list())
 \item{model}{A character string specifying the model type: "logistic" or "linear".
 If NULL, the function will infer the model type.}
 
-\item{option}{A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
+\item{option}{A list of options including the optimization method ("QR", "BFGS", or "Newton"),
 maximum iterations, and convergence tolerances.}
 }
 \value{
