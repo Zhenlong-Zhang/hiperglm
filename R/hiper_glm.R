@@ -67,5 +67,14 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
     beta_hat <- fitting_method_newton(design, outcome, option)
   }
 
-  return(structure(list(coefficients = beta_hat, method = method, model = model), class = "hiperglm"))
+  return(structure(
+  list(
+    coefficients = beta_hat,
+    method = method,
+    model = model,
+    design = design,
+    outcome = outcome
+  ),
+  class = "hiperglm"
+  ))
 }
