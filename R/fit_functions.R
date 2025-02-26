@@ -92,25 +92,17 @@ fitting_method_newton <- function(design, outcome, option) {
 
   while (!converged && iter < max_iter) {
     iter <- iter + 1L
-    
-    neg_grad <- neg_gradient(beta, design, outcome)
-    H <- hessian(beta, design, outcome)
 
-    beta_update <- tryCatch(
-      solve(H, neg_grad),  
-      error = function(e) {
-        warning("Hessian is singular, using small step gradient update instead.")
-        return(neg_grad * 0.01) 
-      }
-    )
+    step_result <- take_one_newton_step(beta, design, outcome, neg_gradient, hessian, neg_log_likelihood, epsilon_small)
+    new_beta <- step_result$beta
+    new_neg_log_likelihood <- step_result$neg_log_likelihood
 
-    beta <- beta - beta_update 
-    neg_log_likelihood_new <- neg_log_likelihood(beta, design, outcome)
-    change <- abs(neg_log_likelihood_new - neg_log_likelihood_old)  
-    rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)  
-
+    change <- abs(new_neg_log_likelihood - neg_log_likelihood_old)
+    rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)
     converged <- (change < epsilon_abs || rel_change < epsilon_rel)
-    neg_log_likelihood_old <- neg_log_likelihood_new  
+
+    beta <- new_beta
+    neg_log_likelihood_old <- new_neg_log_likelihood  
   }
 
   if (converged) {
