@@ -56,21 +56,3 @@ hessian_logistic <- function(beta, X, y) {
 }
 
 
-
-#' --------------choose based on model
-#'-------------------------------------------------------------
-get_neg_likelihood_functions <- function(model) {
-  neg_likelihoods <- list(
-    linear = list(
-      neg_log_likelihood = neg_log_likelihood_linear,
-      neg_gradient = neg_gradient_linear,
-      hessian = NULL  # linear deos not need Hessian
-    ),
-    logistic = list(
-      neg_log_likelihood = neg_log_likelihood_logistic,
-      neg_gradient = neg_gradient_logistic,
-      hessian = hessian_logistic  # Hessian applu Newton’s 
-    )
-  )  
-  return(neg_likelihoods[[model]])
-}

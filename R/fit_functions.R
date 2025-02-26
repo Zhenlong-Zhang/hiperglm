@@ -19,7 +19,6 @@ fitting_method_pseudo_inverse <- function(design, outcome) {
 #' @keywords internal
 fitting_method_bfgs <- function(design, outcome, option) {
   model_type <- if (!is.null(option$model)) option$model else "linear"
-  neg_likelihood_funcs <- get_neg_likelihood_functions(model_type)
   
   if (model_type == "logistic") {
     p <- mean(outcome)
@@ -30,14 +29,18 @@ fitting_method_bfgs <- function(design, outcome, option) {
     } else {
       beta_init <- rep(0, ncol(design))
     }
+    neg_log_likelihood <- neg_log_likelihood_logistic
+    neg_gradient <- neg_gradient_logistic
   } else if (model_type == "linear") {
     beta_init <- rep(0, ncol(design))
+    neg_log_likelihood <- neg_log_likelihood_linear
+    neg_gradient <- neg_gradient_linear
   }
   
   optim_res <- optim(
     beta_init, 
-    fn = function(b) neg_likelihood_funcs$neg_log_likelihood(b, design, outcome),
-    gr = function(b) neg_likelihood_funcs$neg_gradient(b, design, outcome),
+    fn = function(b) neg_log_likelihood(b, design, outcome),
+    gr = function(b) neg_gradient(b, design, outcome),
     method = "BFGS",
     control = if (!is.null(option$control)) option$control else list(fnscale = 1, maxit = 1000)
   )
@@ -54,6 +57,20 @@ fitting_method_bfgs <- function(design, outcome, option) {
 #'
 #' @rdname fitting_methods
 #' @keywords internal
+#' Generalized Linear Model Estimation
+#'
+#' This function fits a generalized linear model using different optimization methods.
+#'
+#' @param design A matrix representing the design matrix (independent variables).
+#' @param outcome A vector representing the outcome variable (dependent variable).
+#' @param model A character string specifying the model type: "logistic" or "linear".
+#' If NULL, the function will infer the model type.
+#' @param option A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
+#' maximum iterations, and convergence tolerances.
+#'
+#' @return A list containing the estimated coefficients, method used, and model type.
+#' @export
+
 fitting_method_newton <- function(design, outcome, option) {
   max_iter <- if (!is.null(option$max_iter)) option$max_iter else 50  
   epsilon_abs <- if (!is.null(option$epsilon_abs)) option$epsilon_abs else 1e-6  
@@ -61,7 +78,6 @@ fitting_method_newton <- function(design, outcome, option) {
   epsilon_small <- 1e-8  
 
   model_type <- if (!is.null(option$model)) option$model else "logistic"
-  neg_likelihood_funcs <- get_neg_likelihood_functions(model_type)
   
   if (model_type == "logistic") {
     p <- mean(outcome)
@@ -72,19 +88,25 @@ fitting_method_newton <- function(design, outcome, option) {
     } else {
       beta <- rep(0, ncol(design))
     }
+    neg_log_likelihood <- neg_log_likelihood_logistic
+    neg_gradient <- neg_gradient_logistic
+    hessian <- hessian_logistic
   } else if (model_type == "linear") {
     beta <- rep(0, ncol(design))
+    neg_log_likelihood <- neg_log_likelihood_linear
+    neg_gradient <- neg_gradient_linear
+    hessian <- NULL
   }
   
-  neg_log_likelihood_old <- neg_likelihood_funcs$neg_log_likelihood(beta, design, outcome)
+  neg_log_likelihood_old <- neg_log_likelihood(beta, design, outcome)
   iter <- 0
   converged <- FALSE
 
   while (!converged && iter < max_iter) {
     iter <- iter + 1L
     
-    neg_grad <- neg_likelihood_funcs$neg_gradient(beta, design, outcome)
-    H <- neg_likelihood_funcs$hessian(beta, design, outcome)
+    neg_grad <- neg_gradient(beta, design, outcome)
+    H <- hessian(beta, design, outcome)
 
     beta_update <- tryCatch(
       solve(H, neg_grad),  
@@ -95,7 +117,7 @@ fitting_method_newton <- function(design, outcome, option) {
     )
 
     beta <- beta - beta_update 
-    neg_log_likelihood_new <- neg_likelihood_funcs$neg_log_likelihood(beta, design, outcome)
+    neg_log_likelihood_new <- neg_log_likelihood(beta, design, outcome)
     change <- abs(neg_log_likelihood_new - neg_log_likelihood_old)  
     rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)  
 
