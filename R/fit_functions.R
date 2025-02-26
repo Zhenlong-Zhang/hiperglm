@@ -1,23 +1,135 @@
-# Pseudo Inverse fitting method
+#' Internal Fit Function for hiperglm
+#'
+#' @section Pseudo Inverse Method:
+#'
+#' These functions implement the pseudo inverse fitting method.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
 fitting_method_pseudo_inverse <- function(design, outcome) {
   return(solve(t(design) %*% design, t(design) %*% outcome))
 }
 
-# BFGS fitting method
+
+#' @section BFGS Fitting Method:
+#'
+#' Implements the BFGS optimization method for fitting.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
 fitting_method_bfgs <- function(design, outcome, option) {
-  beta_init <- solve(t(design) %*% design, t(design) %*% outcome)
+  model_type <- if (!is.null(option$model)) option$model else "linear"
+  
+  if (model_type == "logistic") {
+    p <- mean(outcome)
+    if (p > 0 && p < 1) {
+      init_intercept <- log(p / (1 - p))
+      beta_init <- rep(0, ncol(design))
+      beta_init[1] <- init_intercept
+    } else {
+      beta_init <- rep(0, ncol(design))
+    }
+    neg_log_likelihood <- neg_log_likelihood_logistic
+    neg_gradient <- neg_gradient_logistic
+  } else if (model_type == "linear") {
+    beta_init <- rep(0, ncol(design))
+    neg_log_likelihood <- neg_log_likelihood_linear
+    neg_gradient <- neg_gradient_linear
+  }
   
   optim_res <- optim(
     beta_init, 
     fn = function(b) neg_log_likelihood(b, design, outcome),
-    gr = function(b) neg_grad(b, design, outcome),
+    gr = function(b) neg_gradient(b, design, outcome),
     method = "BFGS",
-    control = if (!is.null(option$control)) option$control else list(fnscale = 1)
+    control = if (!is.null(option$control)) option$control else list(fnscale = 1, maxit = 1000)
   )
   
   if (optim_res$convergence != 0) {
     warning("BFGS optimization did not converge. Consider checking your data, initial values, or optimization settings.")
   }
-  
   return(optim_res$par)
+}
+
+#' @section Newton Fitting Method:
+#'
+#' Implements Newton's method for logistic regression.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
+#' Generalized Linear Model Estimation
+#'
+#' This function fits a generalized linear model using different optimization methods.
+#'
+#' @param design A matrix representing the design matrix (independent variables).
+#' @param outcome A vector representing the outcome variable (dependent variable).
+#' @param model A character string specifying the model type: "logistic" or "linear".
+#' If NULL, the function will infer the model type.
+#' @param option A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
+#' maximum iterations, and convergence tolerances.
+#'
+#' @return A list containing the estimated coefficients, method used, and model type.
+#' @export
+
+fitting_method_newton <- function(design, outcome, option) {
+  max_iter <- if (!is.null(option$max_iter)) option$max_iter else 50  
+  epsilon_abs <- if (!is.null(option$epsilon_abs)) option$epsilon_abs else 1e-6  
+  epsilon_rel <- if (!is.null(option$epsilon_rel)) option$epsilon_rel else 1e-6  
+  epsilon_small <- 1e-8  
+
+  model_type <- if (!is.null(option$model)) option$model else "logistic"
+  
+  if (model_type == "logistic") {
+    p <- mean(outcome)
+    if (p > 0 && p < 1) {
+      init_intercept <- log(p / (1 - p))
+      beta <- rep(0, ncol(design))
+      beta[1] <- init_intercept
+    } else {
+      beta <- rep(0, ncol(design))
+    }
+    neg_log_likelihood <- neg_log_likelihood_logistic
+    neg_gradient <- neg_gradient_logistic
+    hessian <- hessian_logistic
+  } else if (model_type == "linear") {
+    beta <- rep(0, ncol(design))
+    neg_log_likelihood <- neg_log_likelihood_linear
+    neg_gradient <- neg_gradient_linear
+    hessian <- NULL
+  }
+  
+  neg_log_likelihood_old <- neg_log_likelihood(beta, design, outcome)
+  iter <- 0
+  converged <- FALSE
+
+  while (!converged && iter < max_iter) {
+    iter <- iter + 1L
+    
+    neg_grad <- neg_gradient(beta, design, outcome)
+    H <- hessian(beta, design, outcome)
+
+    beta_update <- tryCatch(
+      solve(H, neg_grad),  
+      error = function(e) {
+        warning("Hessian is singular, using small step gradient update instead.")
+        return(neg_grad * 0.01) 
+      }
+    )
+
+    beta <- beta - beta_update 
+    neg_log_likelihood_new <- neg_log_likelihood(beta, design, outcome)
+    change <- abs(neg_log_likelihood_new - neg_log_likelihood_old)  
+    rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)  
+
+    converged <- (change < epsilon_abs || rel_change < epsilon_rel)
+    neg_log_likelihood_old <- neg_log_likelihood_new  
+  }
+
+  if (converged) {
+    message("Newton's method converged at iteration ", iter)
+  } else {
+    warning("Newton's method reached the maximum iteration limit (", max_iter, ") without full convergence.")
+  }
+  
+  return(beta)
 }

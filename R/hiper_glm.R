@@ -1,10 +1,26 @@
-# Load the fitting methods
-source("R/fit_functions.R")
+#' Generalized Linear Model Estimation
+#'
+#' This function fits a generalized linear model using different optimization methods.
+#'
+#' @param design A matrix representing the design matrix (independent variables).
+#' @param outcome A vector representing the outcome variable (dependent variable).
+#' @param model A character string specifying the model type: "logistic" or "linear".
+#' If NULL, the function will infer the model type.
+#' @param option A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
+#' maximum iterations, and convergence tolerances.
+#'
+#' @return A list containing the estimated coefficients, method used, and model type.
+#' @export
 
+hiper_glm <- function(design, outcome, model = NULL, option = list()) {
+  if (is.null(model)) {
+    if (all(outcome %in% c(0, 1))) {
+      model <- "logistic"
+    } else {
+      model <- "linear"
+    }
+  }
 
-hiper_glm <- function(design, outcome, model = "linear", option = list()) {
-  
-  # Check input validity
   if (nrow(design) != length(outcome)) {
     stop("Error: The number of rows in 'design' must match the length of 'outcome'.")
   }
@@ -14,22 +30,41 @@ hiper_glm <- function(design, outcome, model = "linear", option = list()) {
   if (!is.vector(outcome)) {
     stop("Error: 'outcome' must be a vector.")
   }
+
+  allowed_methods <- c("pseudo_inverse", "BFGS", "Newton")
+
+  if (is.null(option)) {
+    option <- list()
+  }
   
-  # Allowed methods
-  allowed_methods <- c("pseudo_inverse", "BFGS")
-  option <- modifyList(list(method = "pseudo_inverse"), option)
+  option <- modifyList(
+    list(method = "pseudo_inverse", model = model, max_iter = 50, epsilon_abs = 1e-6, epsilon_rel = 1e-6),
+    option
+  )
+  
   method <- match.arg(option$method, allowed_methods)
-  
-  # Control checks
+
   if (!is.null(option$control) && !is.list(option$control)) {
-    stop("Error: 'option$control' must be a list if provided or if none a default method of pseudo inverse will be performed.")
+    stop("Error: 'option$control' must be a list if provided.")
   }
 
-  # Fit the model
   if (method == "pseudo_inverse") {
-    beta_hat <- fitting_method_pseudo_inverse(design, outcome)  
+    if (model == "logistic") {
+      stop("Error: Pseudo-inverse method is not supported for logistic regression.")
+    }
+    beta_hat <- tryCatch(
+      fitting_method_pseudo_inverse(design, outcome),
+      error = function(e) {
+        stop("Error in pseudo-inverse fitting: ", e$message)
+      }
+    )
   } else if (method == "BFGS") {
     beta_hat <- fitting_method_bfgs(design, outcome, option)
+  } else if (method == "Newton") {
+    if (model != "logistic") {
+      stop("Error: Newton's method is only implemented for logistic regression.")
+    }
+    beta_hat <- fitting_method_newton(design, outcome, option)
   }
 
   return(structure(list(coefficients = beta_hat, method = method, model = model), class = "hiperglm"))

@@ -1,6 +1,3 @@
-# Load necessary functions
-source("utils.R")
-
 # Test 1: Check if values are close (should return TRUE)
 test_that("are_all_close returns TRUE for values that are close", {
   expect_true(are_all_close(1.000001, 1.000002, rel_tol = 1e-5, abs_tol = 1e-5))
