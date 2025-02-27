@@ -21,7 +21,7 @@ vcov.hiperglm <- function(object, ...) {
     n <- nrow(X)
     p <- ncol(X)
     residuals <- y - X %*% beta_hat
-    sigma2 <- (n / (n - p)) * sum(residuals^2)
+    sigma2 <- sum(residuals^2) / (n - p)
     R <- extract_R(X)
     xtx_inv <- chol2inv(R)
     vcov_mat <- sigma2 * xtx_inv
