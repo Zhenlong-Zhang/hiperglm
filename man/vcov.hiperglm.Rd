@@ -15,5 +15,11 @@
 A matrix representing the variance-covariance of the estimated coefficients.
 }
 \description{
-Variance-Covariance Matrix for hiper_glm Objects
+Computes the variance-covariance matrix of the estimated coefficients.
+For linear models, the matrix is given by \eqn{\hat{\sigma}^2 (X^\top X)^{-1}},
+with \eqn{\hat{\sigma}^2 = \frac{n}{n-p} \| y - X\hat{\beta} \|^2}.
+For logistic models, the observed Fisher information is \eqn{X^\top W X},
+where \eqn{W} is a diagonal matrix with entries \eqn{p_i(1-p_i)}.
+The inverse is computed from the "R" factor of the QR decomposition of \eqn{X} (linear)
+or \eqn{\sqrt{W}X} (logistic).
 }

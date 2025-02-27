@@ -1,12 +1,12 @@
 #' Variance-Covariance Matrix for hiper_glm Objects
 #'
 #' Computes the variance-covariance matrix of the estimated coefficients.
-#' For linear models, the matrix is given by \(\hat{\sigma}^2 (X^\top X)^{-1}\)
-#' with \(\hat{\sigma}^2 = \frac{n}{n-p} \| y - X\hat{\beta} \|^2\).
-#' For logistic models, the observed Fisher information is \(X^\top W X\),
-#' where \(W\) is a diagonal matrix with entries \(p_i(1-p_i)\).
-#' The inverse is computed from the "R" factor of the QR decomposition of
-#' \(X\) (linear) or \(\sqrt{W}X\) (logistic).
+#' For linear models, the matrix is given by \eqn{\hat{\sigma}^2 (X^\top X)^{-1}},
+#' with \eqn{\hat{\sigma}^2 = \frac{n}{n-p} \| y - X\hat{\beta} \|^2}.
+#' For logistic models, the observed Fisher information is \eqn{X^\top W X},
+#' where \eqn{W} is a diagonal matrix with entries \eqn{p_i(1-p_i)}.
+#' The inverse is computed from the "R" factor of the QR decomposition of \eqn{X} (linear)
+#' or \eqn{\sqrt{W}X} (logistic).
 #'
 #' @param object An object of class "hiperglm".
 #' @param ... Further arguments passed to or from other methods (not used here).
@@ -29,8 +29,8 @@ vcov.hiperglm <- function(object, ...) {
   } else if (object$model == "logistic") {
     X <- object$design
     beta_hat <- object$coefficients
-    p <- expit(as.vector(X %*% beta_hat))
-    sqrt_W <- sqrt(p * (1 - p))
+    p_val <- expit(as.vector(X %*% beta_hat))
+    sqrt_W <- sqrt(p_val * (1 - p_val))
     tilde_X <- X * sqrt_W
     R <- extract_R(tilde_X)
     fisher_inv <- chol2inv(R)

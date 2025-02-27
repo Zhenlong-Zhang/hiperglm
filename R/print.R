@@ -1,6 +1,6 @@
 #' @export
 
 
-print.hiperglm <- function(object, ...) {
+print.hiperglm <- function(x, ...) {
   stop("print yet to be implemented")
 }
