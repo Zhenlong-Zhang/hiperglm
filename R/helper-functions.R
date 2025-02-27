@@ -73,3 +73,20 @@ take_one_newton_step <- function(beta, design, outcome, neg_gradient, hessian, n
   
   return(list(beta = new_beta, neg_log_likelihood = new_neg_log_likelihood))
 }
+
+#' Extract the R Factor from a QR Decomposition
+#'
+#' This function performs a QR decomposition on a given matrix \eqn{X}, extracts the upper-triangular
+#' factor \eqn{R}, and reorders its columns according to the pivoting information. This is useful for
+#' ensuring that \eqn{X \approx Q \times R} holds, even when column pivoting is used.
+#'
+#' @param X A numeric matrix.
+#'
+#' @return The reordered upper-triangular matrix \eqn{R}.
+#' @keywords internal
+extract_R <- function(X) {
+  qr_decomp <- qr(X)
+  R <- qr.R(qr_decomp)
+  R <- R[, order(qr_decomp$pivot)]
+  return(R)
+}

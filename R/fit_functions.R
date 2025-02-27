@@ -121,7 +121,7 @@ fitting_method_newton <- function(design, outcome, option) {
     if (change < epsilon_abs || rel_change < epsilon_rel) {
       beta <- new_beta
       converged <- TRUE
-      message("Newton's method converged at iteration ", iter)
+      
       break
     }
     
