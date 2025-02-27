@@ -12,6 +12,18 @@ fitting_method_qr <- function(design, outcome) {
   return(beta)
 }
 
+#' @section Pseudo Inverse Method:
+#'
+#' These functions implement the pseudo inverse fitting method.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
+fitting_method_pseudo_inverse <- function(design, outcome) {
+  return(solve(t(design) %*% design, t(design) %*% outcome))
+}
+
+
+
 #' @section BFGS Fitting Method:
 #'
 #' Implements the BFGS optimization method for fitting.
@@ -90,7 +102,16 @@ fitting_method_newton <- function(design, outcome, option) {
   converged <- FALSE
   
   for (iter in 1:max_iter) {
-    step_result <- take_one_newton_step(beta, design, outcome, neg_gradient, hessian, neg_log_likelihood, epsilon_small)
+    step_result <- take_one_newton_step(
+      beta, 
+      design, 
+      outcome, 
+      neg_gradient, 
+      hessian, 
+      neg_log_likelihood, 
+      solver = "qr",
+      epsilon_small = epsilon_small
+    )
     new_beta <- step_result$beta
     new_neg_log_likelihood <- step_result$neg_log_likelihood
 

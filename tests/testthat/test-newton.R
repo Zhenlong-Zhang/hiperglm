@@ -29,3 +29,35 @@ test_that("Newton's method warns when non-convergent", {
     regexp = "Newton's method reached the maximum iteration limit"
   )
 })
+
+test_that("QR and pseudo solvers yield similar Newton step", {
+
+  data <- simulate_data(n_obs = 100, n_pred = 1, model = "logistic", seed = 123)
+  X <- data$design
+  outcome <- data$outcome
+  beta_init <- rep(0, ncol(X))
+  
+  step_qr <- take_one_newton_step(
+    beta = beta_init,
+    design = X,
+    outcome = outcome,
+    neg_gradient = neg_gradient_logistic,
+    hessian = hessian_logistic,
+    neg_log_likelihood = neg_log_likelihood_logistic,
+    solver = "qr",
+    epsilon_small = 1e-8
+  )
+  
+  step_pseudo <- take_one_newton_step(
+    beta = beta_init,
+    design = X,
+    outcome = outcome,
+    neg_gradient = neg_gradient_logistic,
+    hessian = hessian_logistic,
+    neg_log_likelihood = neg_log_likelihood_logistic,
+    solver = "pseudo",
+    epsilon_small = 1e-8
+  )
+  
+  expect_true(are_all_close(step_qr$beta, step_pseudo$beta, abs_tol = 1e-6, rel_tol = 1e-6))
+})

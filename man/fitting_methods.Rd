@@ -2,11 +2,14 @@
 % Please edit documentation in R/fit_functions.R
 \name{fitting_method_qr}
 \alias{fitting_method_qr}
+\alias{fitting_method_pseudo_inverse}
 \alias{fitting_method_bfgs}
 \alias{fitting_method_newton}
 \title{Internal Fit Function for hiperglm}
 \usage{
 fitting_method_qr(design, outcome)
+
+fitting_method_pseudo_inverse(design, outcome)
 
 fitting_method_bfgs(design, outcome, option)
 
@@ -19,6 +22,12 @@ Internal Fit Function for hiperglm
 
 
 Implements the least squares solution using QR decomposition for linear.
+}
+
+\section{Pseudo Inverse Method}{
+
+
+These functions implement the pseudo inverse fitting method.
 }
 
 \section{BFGS Fitting Method}{
