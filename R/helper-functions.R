@@ -51,10 +51,8 @@ take_one_newton_step <- function(beta, design, outcome, neg_gradient, hessian, n
     sqrt_W <- sqrt(W_vec)
     tilde_X <- design * sqrt_W
     tilde_y <- (outcome - p) / sqrt_W
-    qr_decomp <- qr(tilde_X)
-    R <- qr.R(qr_decomp)
-    R <- R[, order(qr_decomp$pivot)]
-    delta <- qr.coef(qr_decomp, tilde_y)
+    delta <- fitting_method_qr(tilde_X, tilde_y)
+
     if (any(is.na(delta))) {
       warning("QR decomposition failed, falling back to pseudo-inverse solver.")
       neg_grad <- neg_gradient(beta, design, outcome)
