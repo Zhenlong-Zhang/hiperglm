@@ -1,8 +1,8 @@
 test_that("MLE estimated via pseudo-inverse and BFGS are close(Linear Regression)", {
   data <- simulate_data(n_obs = 100, n_pred = 5, seed = 42)
 
-  #  pseudo-inverse for MLE
-  model_pinv <- hiper_glm(data$design, data$outcome, option = list(method = "pseudo_inverse"))
+  #  QR for MLE
+  model_pinv <- hiper_glm(data$design, data$outcome, option = list(method = "QR"))
   beta_pinv <- coef(model_pinv)
 
   # BFGS for MLE

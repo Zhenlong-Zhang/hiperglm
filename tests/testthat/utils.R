@@ -128,3 +128,45 @@ numerical_hessian <- function(f, beta, epsilon = 1e-5) {
 
   return(H_approx)
 }
+
+#' Test convergence via confidence interval coverage
+#'
+#' This internal function simulates data to check that the computed confidence intervals
+#' achieve the nominal coverage level. It indirectly tests the convergence of the estimation
+#' algorithm (e.g., QR for linear models or Newton's method for logistic models).
+#'
+#' @param model_type "linear" or "logistic".
+#' @param option Options to be passed to hiper_glm.
+#' @param m Number of simulations (default: 500).
+#' @param n_obs Number of observations per simulation (default: 100).
+#' @param n_pred Number of predictors (default: 3).
+#' @param nominal Nominal coverage probability (default: 0.95).
+#' @param threshold Tolerance threshold (default: 3).
+#'
+#' @return No return value. Uses expect_true to assert that the observed coverage is within tolerance.
+#'
+#' @keywords internal
+test_confint_coverage <- function(model_type, option, m = 500, n_obs = 100, n_pred = 3, 
+                                  nominal = 0.95, threshold = 3) {
+  count <- 0
+  
+  sim_model <- if(model_type == "linear") "linear" else "logit"
+  fit_model <- if(model_type == "linear") "linear" else "logistic"
+  
+  for(i in 1:m) {
+    data <- simulate_data(n_obs = n_obs, n_pred = n_pred, model = sim_model)
+    fit <- hiper_glm(data$design, data$outcome, model = fit_model, option = option)
+    beta_hat <- coef(fit)
+    Sigma_hat <- vcov(fit)
+    
+    diff <- data$coef_true - beta_hat
+    stat <- sum(backsolve(chol(Sigma_hat), diff)^2)
+    
+    q <- qchisq(nominal, df = length(beta_hat))
+    if(stat < q) count <- count + 1
+  }
+  
+  coverage <- count / m
+  sigma <- sqrt(nominal * (1 - nominal) / m)
+  expect_true(abs(coverage - nominal) < threshold * sigma)
+}

@@ -1,5 +1,17 @@
 #' Internal Fit Function for hiperglm
 #'
+#' @section QR Decomposition Fitting Method:
+#'
+#' Implements the least squares solution using QR decomposition for linear.
+#'
+#' @rdname fitting_methods
+#' @keywords internal
+fitting_method_qr <- function(design, outcome) {
+  qr_decomp <- qr(design)
+  beta <- qr.solve(qr_decomp, outcome)
+  return(beta)
+}
+
 #' @section Pseudo Inverse Method:
 #'
 #' These functions implement the pseudo inverse fitting method.
@@ -9,6 +21,7 @@
 fitting_method_pseudo_inverse <- function(design, outcome) {
   return(solve(t(design) %*% design, t(design) %*% outcome))
 }
+
 
 
 #' @section BFGS Fitting Method:
@@ -57,19 +70,6 @@ fitting_method_bfgs <- function(design, outcome, option) {
 #'
 #' @rdname fitting_methods
 #' @keywords internal
-#' Generalized Linear Model Estimation
-#'
-#' This function fits a generalized linear model using different optimization methods.
-#'
-#' @param design A matrix representing the design matrix (independent variables).
-#' @param outcome A vector representing the outcome variable (dependent variable).
-#' @param model A character string specifying the model type: "logistic" or "linear".
-#' If NULL, the function will infer the model type.
-#' @param option A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
-#' maximum iterations, and convergence tolerances.
-#'
-#' @return A list containing the estimated coefficients, method used, and model type.
-#' @export
 
 fitting_method_newton <- function(design, outcome, option) {
   max_iter <- if (!is.null(option$max_iter)) option$max_iter else 50  
@@ -99,35 +99,37 @@ fitting_method_newton <- function(design, outcome, option) {
   }
   
   neg_log_likelihood_old <- neg_log_likelihood(beta, design, outcome)
-  iter <- 0
   converged <- FALSE
-
-  while (!converged && iter < max_iter) {
-    iter <- iter + 1L
-    
-    neg_grad <- neg_gradient(beta, design, outcome)
-    H <- hessian(beta, design, outcome)
-
-    beta_update <- tryCatch(
-      solve(H, neg_grad),  
-      error = function(e) {
-        warning("Hessian is singular, using small step gradient update instead.")
-        return(neg_grad * 0.01) 
-      }
+  iter <- 1
+  
+  while (!converged && iter <= max_iter) {
+    step_result <- take_one_newton_step(
+      beta, 
+      design, 
+      outcome, 
+      neg_gradient, 
+      hessian, 
+      neg_log_likelihood, 
+      solver = "qr",
+      epsilon_small = epsilon_small
     )
+    new_beta <- step_result$beta
+    new_neg_log_likelihood <- step_result$neg_log_likelihood
 
-    beta <- beta - beta_update 
-    neg_log_likelihood_new <- neg_log_likelihood(beta, design, outcome)
-    change <- abs(neg_log_likelihood_new - neg_log_likelihood_old)  
-    rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)  
-
-    converged <- (change < epsilon_abs || rel_change < epsilon_rel)
-    neg_log_likelihood_old <- neg_log_likelihood_new  
+    change <- abs(new_neg_log_likelihood - neg_log_likelihood_old)
+    rel_change <- change / (abs(neg_log_likelihood_old) + epsilon_small)
+    
+    if (change < epsilon_abs || rel_change < epsilon_rel) {
+      beta <- new_beta
+      converged <- TRUE
+    } else {
+      beta <- new_beta
+      neg_log_likelihood_old <- new_neg_log_likelihood  
+      iter <- iter + 1
+    }
   }
-
-  if (converged) {
-    message("Newton's method converged at iteration ", iter)
-  } else {
+  
+  if (!converged) {
     warning("Newton's method reached the maximum iteration limit (", max_iter, ") without full convergence.")
   }
   

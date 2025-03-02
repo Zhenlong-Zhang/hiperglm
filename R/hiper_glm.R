@@ -6,7 +6,7 @@
 #' @param outcome A vector representing the outcome variable (dependent variable).
 #' @param model A character string specifying the model type: "logistic" or "linear".
 #' If NULL, the function will infer the model type.
-#' @param option A list of options including the optimization method ("pseudo_inverse", "BFGS", or "Newton"),
+#' @param option A list of options including the optimization method ("QR", "BFGS", or "Newton"),
 #' maximum iterations, and convergence tolerances.
 #'
 #' @return A list containing the estimated coefficients, method used, and model type.
@@ -31,14 +31,14 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
     stop("Error: 'outcome' must be a vector.")
   }
 
-  allowed_methods <- c("pseudo_inverse", "BFGS", "Newton")
+  allowed_methods <- c("QR", "BFGS", "Newton")
 
   if (is.null(option)) {
     option <- list()
   }
   
   option <- modifyList(
-    list(method = "pseudo_inverse", model = model, max_iter = 50, epsilon_abs = 1e-6, epsilon_rel = 1e-6),
+    list(method = "QR", model = model, max_iter = 50, epsilon_abs = 1e-6, epsilon_rel = 1e-6),
     option
   )
   
@@ -48,14 +48,14 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
     stop("Error: 'option$control' must be a list if provided.")
   }
 
-  if (method == "pseudo_inverse") {
+  if (method == "QR") {
     if (model == "logistic") {
-      stop("Error: Pseudo-inverse method is not supported for logistic regression.")
+      stop("Error: QR method is not supported for logistic regression.")
     }
     beta_hat <- tryCatch(
-      fitting_method_pseudo_inverse(design, outcome),
+      fitting_method_qr(design, outcome),
       error = function(e) {
-        stop("Error in pseudo-inverse fitting: ", e$message)
+        stop("Error in QR fitting: ", e$message)
       }
     )
   } else if (method == "BFGS") {
@@ -67,5 +67,14 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
     beta_hat <- fitting_method_newton(design, outcome, option)
   }
 
-  return(structure(list(coefficients = beta_hat, method = method, model = model), class = "hiperglm"))
+  return(structure(
+  list(
+    coefficients = beta_hat,
+    method = method,
+    model = model,
+    design = design,
+    outcome = outcome
+  ),
+  class = "hiperglm"
+  ))
 }
