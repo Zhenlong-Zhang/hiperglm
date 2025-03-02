@@ -100,8 +100,9 @@ fitting_method_newton <- function(design, outcome, option) {
   
   neg_log_likelihood_old <- neg_log_likelihood(beta, design, outcome)
   converged <- FALSE
+  iter <- 1
   
-  for (iter in 1:max_iter) {
+  while (!converged && iter <= max_iter) {
     step_result <- take_one_newton_step(
       beta, 
       design, 
@@ -121,12 +122,11 @@ fitting_method_newton <- function(design, outcome, option) {
     if (change < epsilon_abs || rel_change < epsilon_rel) {
       beta <- new_beta
       converged <- TRUE
-      
-      break
+    } else {
+      beta <- new_beta
+      neg_log_likelihood_old <- new_neg_log_likelihood  
+      iter <- iter + 1
     }
-    
-    beta <- new_beta
-    neg_log_likelihood_old <- new_neg_log_likelihood  
   }
   
   if (!converged) {
