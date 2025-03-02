@@ -30,10 +30,8 @@ expit <- function(x) {
 #'
 #' @keywords internal
 take_one_newton_step <- function(beta, design, outcome, neg_gradient, hessian, neg_log_likelihood,
-                                  solver = "qr", epsilon_small = 1e-8) {
+                                 solver = "qr", epsilon_small = 1e-8) {
   solver <- match.arg(solver, choices = c("qr", "pseudo"))
-  
-  p <- expit(as.vector(design %*% beta))
   
   if (solver == "pseudo") {
     neg_grad <- neg_gradient(beta, design, outcome) 
@@ -46,8 +44,9 @@ take_one_newton_step <- function(beta, design, outcome, neg_gradient, hessian, n
     )
     new_beta <- beta - delta
   } else if (solver == "qr") {
-    W_vec <- p * (1 - p)
-    W_vec[W_vec < 1e-8] <- 1e-8
+    
+    p <- expit(as.vector(design %*% beta))
+    W_vec <- compute_weights(p, epsilon_small)
     sqrt_W <- sqrt(W_vec)
     tilde_X <- design * sqrt_W
     tilde_y <- (outcome - p) / sqrt_W
@@ -87,4 +86,20 @@ extract_R <- function(X) {
   R <- qr.R(qr_decomp)
   R <- R[, order(qr_decomp$pivot)]
   return(R)
+}
+
+#' Compute Weights for Newton Step
+#'
+#' This function computes the weights used in the Newton-Raphson update
+#' for logistic regression.
+#'
+#' @param p Predicted probabilities.
+#' @param epsilon_small A threshold to avoid weights that are too small.
+#'
+#' @return A vector of weights.
+#' @keywords internal
+compute_weights <- function(p, epsilon_small = 1e-8) {
+  W_vec <- p * (1 - p)
+  W_vec[W_vec < epsilon_small] <- epsilon_small
+  return(W_vec)
 }
