@@ -8,7 +8,7 @@
 #' @keywords internal
 fitting_method_qr <- function(design, outcome) {
   qr_decomp <- qr(design)
-  beta <- qr.coef(qr_decomp, outcome)
+  beta <- qr.solve(qr_decomp, outcome)
   return(beta)
 }
 
