@@ -22,13 +22,13 @@ test_that("Confidence intervals for linear model have correct coverage", {
     
     if(stat < q) count <- count + 1
   }
-  
+  threshold <- 3
   coverage <- count / m
 
   sigma <- sqrt(nominal * (1 - nominal) / m)
   
 
-  expect_true(abs(coverage - nominal) < 3 * sigma)
+  expect_true(abs(coverage - nominal) < threshold * sigma)
 })
 
 test_that("Confidence intervals for logistic model have correct coverage", {
@@ -54,8 +54,8 @@ test_that("Confidence intervals for logistic model have correct coverage", {
     
     if(stat < q) count <- count + 1
   }
-  
+   threshold <- 3
   coverage <- count / m
   sigma <- sqrt(nominal * (1 - nominal) / m)
-  expect_true(abs(coverage - nominal) < 3 * sigma)
+  expect_true(abs(coverage - nominal) < threshold * sigma)
 })
