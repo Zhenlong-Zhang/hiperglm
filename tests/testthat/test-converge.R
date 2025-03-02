@@ -17,8 +17,10 @@ test_that("Confidence intervals for linear model have correct coverage", {
     
     diff <- data$coef_true - beta_hat
 
-    Sigma_inv_half <- solve(chol(Sigma_hat))
-    stat <- sum((Sigma_inv_half %*% diff)^2)
+    cholesky <- chol(Sigma_hat)
+    x <- forwardsolve(t(cholesky), diff)
+    stat <- sum(x^2)
+
     
     if(stat < q) count <- count + 1
   }
