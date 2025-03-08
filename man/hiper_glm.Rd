@@ -15,7 +15,7 @@ hiper_glm(design, outcome, model = NULL, option = list())
 If NULL, the function will infer the model type.}
 
 \item{option}{A list of options including the optimization method ("QR", "BFGS", or "Newton"),
-maximum iterations, and convergence tolerances.}
+maximum iterations, convergence tolerances, and solver for IWLS ("qr" or "pseudo").}
 }
 \value{
 A list containing the estimated coefficients, method used, and model type.

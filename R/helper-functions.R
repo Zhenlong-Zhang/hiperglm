@@ -44,14 +44,9 @@ take_one_newton_step <- function(beta, design, outcome, neg_gradient, hessian, n
     )
     new_beta <- beta - delta
   } else if (solver == "qr") {
-    
     p <- expit(as.vector(design %*% beta))
-    W_vec <- compute_weights(p, epsilon_small)
-    sqrt_W <- sqrt(W_vec)
-    tilde_X <- design * sqrt_W
-    tilde_y <- (outcome - p) / sqrt_W
-    delta <- fitting_method_qr(tilde_X, tilde_y)
-
+    w <- compute_weights(p, epsilon_small)
+    delta <- eigenLeastSquaresWeighted(design, (outcome - p) / w, w)$coef
     if (any(is.na(delta))) {
       warning("QR decomposition failed, falling back to pseudo-inverse solver.")
       neg_grad <- neg_gradient(beta, design, outcome)
