@@ -6,3 +6,6 @@ NULL
 #' @useDynLib hiperglm, .registration = TRUE
 ## usethis namespace: end
 NULL
+## usethis namespace: start
+#' @import RcppEigen## usethis namespace: end
+#' NULL
