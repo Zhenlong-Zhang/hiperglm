@@ -1,6 +1,7 @@
 #include "hiperglm_types.h"
 #include <RcppEigen.h>
-using namespace Rcpp;
+using Rcpp::List;
+using Rcpp::Named;
 
 // [[Rcpp::export]]
 List eigenLeastSquaresWeighted(const Eigen::Map<MatrixXd> &X,
