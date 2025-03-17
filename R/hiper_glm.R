@@ -7,11 +7,10 @@
 #' @param model A character string specifying the model type: "logistic" or "linear".
 #' If NULL, the function will infer the model type.
 #' @param option A list of options including the optimization method ("QR", "BFGS", or "Newton"),
-#' maximum iterations, and convergence tolerances.
+#' maximum iterations, convergence tolerances, and solver for IWLS ("qr" or "pseudo").
 #'
 #' @return A list containing the estimated coefficients, method used, and model type.
 #' @export
-
 hiper_glm <- function(design, outcome, model = NULL, option = list()) {
   if (is.null(model)) {
     if (all(outcome %in% c(0, 1))) {
@@ -36,9 +35,8 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
   if (is.null(option)) {
     option <- list()
   }
-  
   option <- modifyList(
-    list(method = "QR", model = model, max_iter = 50, epsilon_abs = 1e-6, epsilon_rel = 1e-6),
+    list(method = "QR", model = model, max_iter = 50, epsilon_abs = 1e-6, epsilon_rel = 1e-6, solver = "qr"),
     option
   )
   
@@ -68,13 +66,13 @@ hiper_glm <- function(design, outcome, model = NULL, option = list()) {
   }
 
   return(structure(
-  list(
-    coefficients = beta_hat,
-    method = method,
-    model = model,
-    design = design,
-    outcome = outcome
-  ),
-  class = "hiperglm"
+    list(
+      coefficients = beta_hat,
+      method = method,
+      model = model,
+      design = design,
+      outcome = outcome
+    ),
+    class = "hiperglm"
   ))
 }

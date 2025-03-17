@@ -170,3 +170,30 @@ test_confint_coverage <- function(model_type, option, m = 500, n_obs = 100, n_pr
   sigma <- sqrt(nominal * (1 - nominal) / m)
   expect_true(abs(coverage - nominal) < threshold * sigma)
 }
+
+#' Compute Weighted Least Squares Baseline
+#'
+#' This internal function computes the weighted least squares solution given a design matrix,
+#' outcome vector, and weight vector. It returns the estimated coefficients, fitted values, and residuals.
+#'
+#' @param X Numeric design matrix.
+#' @param y Numeric outcome vector.
+#' @param w Numeric weight vector.
+#'
+#' @return A list with components:
+#' \describe{
+#'   \item{coef}{Estimated coefficients.}
+#'   \item{fitted}{Fitted values computed as X %*% coef.}
+#'   \item{resid}{Residuals computed as y - fitted.}
+#' }
+#'
+#' @keywords internal
+get_weighted_ls_baseline <- function(X, y, w) {
+  sqrt_w <- sqrt(w)
+  tilde_X <- X * sqrt_w
+  tilde_y <- y * sqrt_w
+  beta_baseline <- qr.solve(tilde_X, tilde_y)
+  fitted_baseline <- X %*% beta_baseline
+  resid_baseline <- y - fitted_baseline
+  list(coef = beta_baseline, fitted = fitted_baseline, resid = resid_baseline)
+}
