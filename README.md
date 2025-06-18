@@ -1,6 +1,6 @@
 # hiper_glm
 
-Course Project for **140.778.01 — Statistical Computing, Algorithm, and Software Development**  
+Course Project for **— Statistical Computing, Algorithm, and Software Development**  
 
 A flexible implementation of generalized linear model (GLM) estimation in R.  
 Supports multiple optimization methods including QR decomposition, BFGS, and Newton-Raphson for logistic regression.
